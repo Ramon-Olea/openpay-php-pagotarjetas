@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Formulario de Tarjeta de Crédito Dinámico</title>
+	<link href="https://fonts.googleapis.com/css?family=Lato|Liu+Jian+Mao+Cao&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="css/estilos.css">
+	<script type="text/javascript"
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script type="text/javascript"
+	src="https://js.openpay.mx/openpay.v1.min.js"></script>
+<script type='text/javascript'
+src="https://js.openpay.mx/openpay-data.v1.min.js"></script>
+	<script>  /* chance costo de estado  */
+        $(document).ready(function() {
+
+			OpenPay.setId('mzpasdasdsadsd');//tus credenciales de api sustituir
+	OpenPay.setApiKey('pk_4c7aasdsadasdsad');//tus credenciales de api sustituir
+	OpenPay.setSandboxMode(true);
+	//Se genera el id de dispositivo
+	var deviceSessionId = OpenPay.deviceData.setup("formulario-tarjeta", "deviceIdHiddenFieldName");
+	$("#pay-button").on("click", function (event) {
+    event.preventDefault();
+    $("#pay-button").prop("disabled", true);
+    OpenPay.token.extractFormAndCreate(
+      "formulario-tarjeta",
+      sucess_callbak,
+      error_callbak
+    );
+  });
+});
+var sucess_callbak = function (response) {
+    var token_id = response.data.id;
+
+  
+
+    var inputNumero = $("#inputNumero").val();
+    var inputNombre = $("#inputNombre").val();
+    var selectMes = $("#selectMes").val();
+    var selectYear = $("#selectYear").val();
+
+  
+    var deviceIdHiddenFieldName = $("#deviceIdHiddenFieldName").val();
+
+    var formData = new FormData();
+
+    formData.append("holder_name", inputNombre);
+    formData.append("card_number", inputNumero);
+    formData.append("expiration_month", selectMes);
+    formData.append("expiration_year", selectYear);
+    formData.append("cvv", inputCCV);
+
+    formData.append("email", "prueba@gmail.com");
+    formData.append("token_id", token_id);
+    formData.append("deviceIdHiddenFieldName", deviceIdHiddenFieldName);
+    formData.append("metodoPago", "open");
+
+    formData.append("token_id", token_id);
+  
+    formData.append("function", "addPay");
+
+    // $('#payment-form').submit();
+	
+	$.ajax({
+        data: formData, //send data via AJAX
+        url: "./crearPago.php", //url file controller PHP
+        dataType: "json",
+        contentType: false,
+        processData: false,
+        type: "post", //send POST data
+        success: function (response) {
+          //get request
+          /*    console.log(response); */
+          if (response.status == true) {
+            /*  */
+			alert("cargo correcto")
+          } else {
+            alert("ERORO AL REALIZAR EL PAGO : " + response.charge);
+            $("#pay-button").prop("disabled", false);
+          }
+        },
+      });
+    
+  };
+var error_callbak = function (response) {
+    var desc =
+      response.data.description != undefined
+        ? response.data.description
+        : response.message;
+    alert("ERROR [" + response.status + "] " + desc);
+    $("#pay-button").prop("disabled", false);
+  };
+	</script>
+</head>
+<body>
+	<div class="contenedor">
+
+		<!-- Tarjeta -->
+		<section class="tarjeta" id="tarjeta">
+			<div class="delantera">
+				<div class="logo-marca" id="logo-marca">
+					<!-- <img src="img/logos/visa.png" alt=""> -->
+				</div>
+				<img src="img/chip-tarjeta.png" class="chip" alt="">
+				<div class="datos">
+					<div class="grupo" id="numero">
+						<p class="label">Número Tarjeta</p>
+						<p class="numero">#### #### #### ####</p>
+					</div>
+					<div class="flexbox">
+						<div class="grupo" id="nombre">
+							<p class="label">Nombre Tarjeta</p>
+							<p class="nombre">Jhon Doe</p>
+						</div>
+
+						<div class="grupo" id="expiracion">
+							<p class="label">Expiracion</p>
+							<p class="expiracion"><span class="mes">MM</span> / <span class="year">AA</span></p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="trasera">
+				<div class="barra-magnetica"></div>
+				<div class="datos">
+					<div class="grupo" id="firma">
+						<p class="label">Firma</p>
+						<div class="firma"><p></p></div>
+					</div>
+					<div class="grupo" id="ccv">
+						<p class="label">CCV</p>
+						<p class="ccv"></p>
+					</div>
+				</div>
+				<p class="leyenda">Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus exercitationem, voluptates illo.</p>
+				<a href="#" class="link-banco">www.tubanco.com</a>
+			</div>
+		</section>
+
+		<!-- Contenedor Boton Abrir Formulario -->
+		<div class="contenedor-btn">
+			<button class="btn-abrir-formulario" id="btn-abrir-formulario">
+				<i class="fas fa-plus"></i>
+			</button>
+		</div>
+
+		<!-- Formulario -->
+		<form action="" id="formulario-tarjeta" class="formulario-tarjeta" method="POST">
+			<input type="hidden" name="token_id" id="token_id">
+
+			<div class="grupo">
+				<label for="inputNumero">Número Tarjeta</label>
+				<input type="text" id="inputNumero" maxlength="19" autocomplete="off" data-openpay-card="card_number">
+			</div>
+			<div class="grupo">
+				<label for="inputNombre">Nombre</label>
+				<input type="text" id="inputNombre" maxlength="19" autocomplete="off" data-openpay-card="holder_name">
+			</div>
+			<div class="flexbox">
+				<div class="grupo expira">
+					<label for="selectMes">Expiracion</label>
+					<div class="flexbox">
+						<div class="grupo-select">
+							<select name="mes" id="selectMes" data-openpay-card="expiration_month">
+								<option disabled selected>Mes</option>
+							</select>
+							<i class="fas fa-angle-down"></i>
+						</div>
+						<div class="grupo-select">
+							<select name="year" id="selectYear" data-openpay-card="expiration_year">
+								<option disabled selected>Año</option>
+							</select>
+							<i class="fas fa-angle-down"></i>
+						</div>
+					</div>
+				</div>
+
+				<div class="grupo ccv">
+					<label for="inputCCV">CCV</label>
+					<input type="text" id="inputCCV" maxlength="4" data-openpay-card="cvv2">
+				</div>
+			</div>
+			<button type="submit" class="btn-enviar" id="pay-button">Enviar</button>
+		</form>
+	</div>
+
+	<script src="https://kit.fontawesome.com/2c36e9b7b1.js" crossorigin="anonymous"></script>
+	<script src="js/main.js"></script>
+</body>
+</html>
